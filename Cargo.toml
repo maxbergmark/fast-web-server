@@ -1,0 +1,27 @@
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+panic = "abort"
+lto = "thin"
+
+
+[package]
+name = "fast-web-server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fast-web-server-macros = {path = "./fast-web-server-macros"}
+rand = "0.8.5"
+rayon = "1.7.0"
+threadpool = "1.8.1"
+
+#[[bin]]
+#edition = "2021"
+#name = "fast-web-server"
+#path = "src/main.rs"
