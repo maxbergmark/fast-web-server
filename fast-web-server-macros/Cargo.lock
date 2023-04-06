@@ -6,10 +6,15 @@ version = 3
 name = "fast-web-server-macros"
 version = "0.1.0"
 dependencies = [
+ "fast-web-server-types",
  "proc-macro2",
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "fast-web-server-types"
+version = "0.1.0"
 
 [[package]]
 name = "proc-macro2"

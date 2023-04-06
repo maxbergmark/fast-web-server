@@ -17,9 +17,8 @@ edition = "2021"
 
 [dependencies]
 fast-web-server-macros = {path = "./fast-web-server-macros"}
-rand = "0.8.5"
-rayon = "1.7.0"
-threadpool = "1.8.1"
+fast-web-server-impl = {path = "./fast-web-server-impl"}
+fast-web-server-types = {path = "./fast-web-server-types"}
 
 #[[bin]]
 #edition = "2021"
