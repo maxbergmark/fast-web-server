@@ -1,0 +1,11 @@
+[package]
+name = "fast-web-server-impl"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rayon = "1.7.0"
+fast-web-server-macros = {path = "../fast-web-server-macros"}
+fast-web-server-types = {path = "../fast-web-server-types"}
