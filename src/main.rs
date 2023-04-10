@@ -1,24 +1,24 @@
-use fast_web_server_impl::{FastWebServer};
-use fast_web_server_types::{HttpRequest, HttpResponse, RequestType};
+use fast_web_server_impl::{FastWebServer, RegisterEndpoint, bind};
+use fast_web_server_macros::{get, post};
+use fast_web_server_types::{HttpRequest, RequestType};
 
 fn main() -> Result<(), String> {
-    let mut server = FastWebServer::new("0.0.0.0:7878", 4);
-    server.bind(RequestType::GET, "/test", test_getter);
-    // server.bind(RequestType::GET, "/other-test", other_test_getter);
-    // server.bind(RequestType::POST, "/post-mirror", mirror_response);
+    let mut server = FastWebServer::new("0.0.0.0:7878", 12);
+    bind![server, test_getter, test_getter2, mirror_response];
     server.run()
 }
 
-
-// #[get("/test")]
-fn test_getter(_request: HttpRequest) -> HttpResponse {
-    HttpResponse::from_body("this is test_getter".to_string())
+#[get("/test3")]
+fn test_getter2(_request: HttpRequest) -> Vec<u8> {
+    vec![62; 1000000]
 }
 
-fn other_test_getter(_request: HttpRequest) -> HttpResponse {
-    HttpResponse::from_body("this is other_test_getter".to_string())
+#[get("/test")]
+fn test_getter(_request: HttpRequest) -> Vec<u8> {
+    "test".to_string().into_bytes()
 }
 
-fn mirror_response(request: HttpRequest) -> HttpResponse {
-    HttpResponse::from_body(request.body)
+#[post("/mirror")]
+fn mirror_response(request: HttpRequest) -> Vec<u8> {
+    request.body.into_bytes()
 }

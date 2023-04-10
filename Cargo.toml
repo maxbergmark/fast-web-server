@@ -19,6 +19,7 @@ edition = "2021"
 fast-web-server-macros = {path = "./fast-web-server-macros"}
 fast-web-server-impl = {path = "./fast-web-server-impl"}
 fast-web-server-types = {path = "./fast-web-server-types"}
+actix-web = "4.3.1"
 
 #[[bin]]
 #edition = "2021"
