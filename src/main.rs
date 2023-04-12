@@ -3,7 +3,7 @@ use fast_web_server_macros::{get, post};
 use fast_web_server_types::{HttpRequest, RequestType};
 
 fn main() -> Result<(), String> {
-    let mut server = FastWebServer::new("0.0.0.0:7878", 12);
+    let mut server = FastWebServer::new("0.0.0.0:7878", 4);
     bind![server, test_getter, test_getter2, mirror_response];
     server.run()
 }
