@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io::{Write, BufWriter, ErrorKind};
 use std::net::{TcpListener, TcpStream};
+use std::sync::{Arc, RwLock};
 use rayon::ThreadPool;
 use fast_web_server_types::{HttpFn, HttpRequest, HttpResponse, HttpVersion, RequestType, StatusCode, StatusLine, HttpHeaders};
 
@@ -8,51 +9,43 @@ use fast_web_server_types::{HttpFn, HttpRequest, HttpResponse, HttpVersion, Requ
 pub struct FastWebServer {
     listener: TcpListener,
     thread_pool: ThreadPool,
-    routes: HashMap<(RequestType, String), HttpFn>,
+    routes: Arc<RwLock<HashMap<(RequestType, String), HttpFn>>>,
 }
-
-scoped_tls::scoped_thread_local!(static POOL_DATA: HashMap<(RequestType, String), HttpFn>);
 
 impl FastWebServer {
     pub fn new(addr: &str, num_workers: usize) -> Self {
-        let pool_data = vec![1, 2, 3];
+
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(num_workers)
             .build()
             .unwrap();
+
         Self {
             listener: TcpListener::bind(addr).unwrap(),
             // thread_pool: ThreadPool::new(num_workers),
             thread_pool: pool,
-            routes: HashMap::default()
+            routes: Arc::new(RwLock::new(HashMap::default())),
         }
     }
 
     pub fn bind(&mut self, request_type: RequestType, route: &str, func: HttpFn) {
-        self.routes.insert((request_type, route.to_string()), func);
+        let mut routes = self.routes.write().unwrap();
+        routes.insert((request_type, route.to_string()), func);
     }
 
     pub fn run(&self) -> Result<(), String> {
-        // let routes = self.routes.clone();
-        let pool_data = self.routes.clone();
-        POOL_DATA.set(&pool_data, || {
-            POOL_DATA.with(|test| {
-                println!("{:?}", test);
-                for stream in self.listener.incoming() {
-                    self.handle_connection(*test, stream.unwrap());
-                }
-            });
-        });
-        // for stream in self.listener.incoming() {
-            // self.handle_connection(routes, stream.unwrap());
-        // }
+        for stream in self.listener.incoming() {
+            self.handle_connection(stream.unwrap());
+        }
         Ok(())
     }
 
-    fn handle_connection(&self, routes: HashMap<(RequestType, String), HttpFn>, stream: TcpStream) {
-        // self.thread_pool.execute(||  {
-        // let routes = self.routes.clone();
-        self.thread_pool.spawn(||  {
+    fn handle_connection(&self, 
+        // routes: Arc<RwLock<HashMap<(RequestType, String), HttpFn>>>, 
+        stream: TcpStream) {
+
+            let routes = self.routes.clone();
+            self.thread_pool.spawn(||  {
             match Self::handle_client(routes, stream) {
                 Ok(_) => {},
                 Err(e) => eprintln!("{}", e),
@@ -62,7 +55,9 @@ impl FastWebServer {
 
 
 
-    fn handle_client(routes: HashMap<(RequestType, String), HttpFn>, mut stream: TcpStream) -> std::io::Result<()> {
+    fn handle_client(
+        routes: Arc<RwLock<HashMap<(RequestType, String), HttpFn>>>, 
+        mut stream: TcpStream) -> std::io::Result<()> {
 
         let http_request = match HttpRequest::new(&mut stream) {
             Ok(request) => request,
@@ -73,10 +68,11 @@ impl FastWebServer {
         let path = http_request.start_line.request_target.uri.to_owned();
         let key = (request_type, path);
 
-        let response = match routes.get(&key) {
+        let response = match routes.read().unwrap().get(&key) {
             Some(func) => func(http_request),
             None => Self::get_404().into(),
         };
+        // let response = Self::get_404().into();
         let http_response = HttpResponse::from_body(String::from_utf8(response).unwrap());
         let response_vec: Vec<u8> = http_response.into();
 
