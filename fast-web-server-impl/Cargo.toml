@@ -9,3 +9,4 @@ edition = "2021"
 rayon = "1.7.0"
 fast-web-server-macros = {path = "../fast-web-server-macros"}
 fast-web-server-types = {path = "../fast-web-server-types"}
+rayon-tlsctx = "0.2.0"

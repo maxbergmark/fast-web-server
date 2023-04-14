@@ -11,8 +11,11 @@ pub struct FastWebServer {
     routes: HashMap<(RequestType, String), HttpFn>,
 }
 
+scoped_tls::scoped_thread_local!(static POOL_DATA: HashMap<(RequestType, String), HttpFn>);
+
 impl FastWebServer {
     pub fn new(addr: &str, num_workers: usize) -> Self {
+        let pool_data = vec![1, 2, 3];
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(num_workers)
             .build()
@@ -30,15 +33,25 @@ impl FastWebServer {
     }
 
     pub fn run(&self) -> Result<(), String> {
-        for stream in self.listener.incoming() {
-            self.handle_connection(stream.unwrap());
-        }
+        // let routes = self.routes.clone();
+        let pool_data = self.routes.clone();
+        POOL_DATA.set(&pool_data, || {
+            POOL_DATA.with(|test| {
+                println!("{:?}", test);
+                for stream in self.listener.incoming() {
+                    self.handle_connection(*test, stream.unwrap());
+                }
+            });
+        });
+        // for stream in self.listener.incoming() {
+            // self.handle_connection(routes, stream.unwrap());
+        // }
         Ok(())
     }
 
-    fn handle_connection(&self, stream: TcpStream) {
+    fn handle_connection(&self, routes: HashMap<(RequestType, String), HttpFn>, stream: TcpStream) {
         // self.thread_pool.execute(||  {
-        let routes = self.routes.clone();
+        // let routes = self.routes.clone();
         self.thread_pool.spawn(||  {
             match Self::handle_client(routes, stream) {
                 Ok(_) => {},

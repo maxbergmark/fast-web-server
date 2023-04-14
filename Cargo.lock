@@ -458,6 +458,7 @@ dependencies = [
  "fast-web-server-macros",
  "fast-web-server-types",
  "rayon",
+ "rayon-tlsctx",
 ]
 
 [[package]]
@@ -889,6 +890,15 @@ dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
  "num_cpus",
+]
+
+[[package]]
+name = "rayon-tlsctx"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eaa2eb6ca3d673ee39c35792a4783151ecd9dba57e752d4af1143a5cec11ffbd"
+dependencies = [
+ "rayon",
 ]
 
 [[package]]
